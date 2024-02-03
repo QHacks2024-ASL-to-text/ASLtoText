@@ -8,7 +8,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 BaseOptions = mp.tasks.BaseOptions
 
-model_path = r'c:\Users\Nicholas\Downloads\gesture_recognizer.task'
+model_path = r'./ASL_model/gesture_recognizer.task'
 
 base_options = BaseOptions(model_asset_path=model_path)
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
