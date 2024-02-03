@@ -1,9 +1,8 @@
 import cv2 as cv
 import os
 from mediapipe_model_maker import gesture_recognizer
-import matplotlib.pyplot as plt
 
-datasetPath = r"C:\Users\Nicholas\Downloads\asl_alphabet_train"
+datasetPath = r"c:\Users\Nicholas\Documents\bbbbb"
 labels = [] 
 for i in os.listdir(datasetPath):
     if os.path.isdir(os.path.join(datasetPath)):
@@ -30,6 +29,6 @@ model = gesture_recognizer.GestureRecognizer.create(
 loss, acc = model.evaluate(test_data, batch_size=1)
 print(f"Test loss:{loss}, Test accuracy:{acc}")
 
-
+model.export_model() 
 
 

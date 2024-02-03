@@ -23,8 +23,15 @@ class Word():
         if x!= self.last:
             self.string+=x +" "
             self.last = x
+    
     def print(self):
         print(self.string)
+
+    def getLast(self):
+        return self.last
+    
+    def getString(self):
+        return self.string
 
 # Create a gesture recognizer instance with the live stream mode:
 def result_string(result: GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
