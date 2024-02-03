@@ -1,23 +1,81 @@
-#from google.colab import files
-#import os
-#import tensorflow as tf
-#assert tf.__version__.startswith('2')
 
-#from mediapipe_model_maker import gesture_recognizer
-
-#import matplotlib.pyplot as plt
-
+import time
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2 as cv
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+BaseOptions = mp.tasks.BaseOptions
 
-model_path = '/absolute/path/to/gesture_recognizer.task'
+model_path = r'c:\Users\Nicholas\Downloads\gesture_recognizer.task'
 
 base_options = BaseOptions(model_asset_path=model_path)
-
-import mediapipe as mp
-
-BaseOptions = mp.tasks.BaseOptions
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
 GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
+GestureRecognizerResult = mp.tasks.vision.GestureRecognizerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
+
+class Word():
+    last = ""
+    string = ""
+    def add(self, x):
+        if x!= self.last:
+            self.string+=x +" "
+            self.last = x
+    def print(self):
+        print(self.string)
+
+# Create a gesture recognizer instance with the live stream mode:
+def result_string(result: GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
+    """
+    Parses 
+    """
+    x = None
+    for gesture in result.gestures:
+        x  = ([category.category_name for category in gesture])
+    if(x!=None):
+        y = x[0]
+        if(y!= "None"):
+            stringObj.add(y)
+            stringObj.print()
+        
+
+
+options = GestureRecognizerOptions(
+    base_options=BaseOptions(model_asset_path=model_path),
+    running_mode=VisionRunningMode.LIVE_STREAM,
+    result_callback=result_string)
+
+
+
+with GestureRecognizer.create_from_options(options) as recognizer:
+    stringObj = Word()
+    cap = cv.VideoCapture(0)
+    if not cap.isOpened():
+        print("Cannot open camera")
+        exit()
+
+    windowName = "live feed"
+    cv.namedWindow('frame', cv.WINDOW_NORMAL)  
+
+    while True:
+        # Capture frame-by-frame
+        ret, frame = cap.read()
+        # if frame is read correctly ret is True
+        if not ret:
+            print("Can't receive frame (stream end?). Exiting ...")
+            break
+        # Our operations on the frame come here
+        cv.imshow('frame',frame)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+        recognizer.recognize_async(mp_image, mp.Timestamp.from_seconds(time.time()).value )
+        
+
+        # Display the resulting frame
+        if cv.waitKey(1) == ord('q'):
+            break
+    # When everything done, release the capture
+    cap.release()
+    cv.destroyAllWindows()
+    
