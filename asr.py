@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 from queue import Queue
 from time import sleep
 
+### Whisper Config ###
+
 MAX_RECORDING_SIZE = 6.0
 NEW_PHRASE_TIMEOUT = 4.0
 
@@ -36,9 +38,23 @@ def record_callback(_, audio:sr.AudioData):
     old_data.put(data)
 
 recorder.listen_in_background(source, record_callback, phrase_time_limit=MAX_RECORDING_SIZE)
+### Whisper Config Done ###
+
+### GUI Config ###
+layout = [[sg.Text(size=(40,1), key='-OUTPUT-')]]
+
+# Create the window
+window = sg.Window('Sign To Me', layout)
+### GUI Config Done ###
 
 while True:
     try:
+
+        event, values = window.read()
+        if event == sg.WINDOW_CLOSED or event == 'Quit':
+            print("Quitting")
+            break        
+
         #Current time to compare
         now = datetime.utcnow()
         if data_queue.empty():
@@ -51,10 +67,11 @@ while True:
             audio_data = b''.join(old_data.queue)
             # print("hi")
 
-        if phrase_time:
-            print(now - phrase_time, ">", timedelta(seconds=NEW_PHRASE_TIMEOUT), phrase_complete)
+        # if phrase_time:
+            # print(now - phrase_time, ">", timedelta(seconds=NEW_PHRASE_TIMEOUT), phrase_complete)
         phrase_time = now
-            
+        
+
         data_queue.queue.clear()
         #     print("hi")
         # data_queue.queue()
@@ -64,6 +81,8 @@ while True:
         text = result['text'].strip()
         print(text)
         print('', end='', flush=True)
+        window['-OUTPUT-'].update(text)
+        
 
         # if phrase_complete:
         #     transcript.append(text)
