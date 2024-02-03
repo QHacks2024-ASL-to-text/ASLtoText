@@ -81,15 +81,7 @@ while True:
         text = result['text'].strip()
         print(text)
         print('', end='', flush=True)
-        window['-OUTPUT-'].update(text)
-        
-
-        # if phrase_complete:
-        #     transcript.append(text)
-        # else:
-        #     transcript[-1] = text
-        #
-        # print()
+        # window['-OUTPUT-'].update(text)
 
         #Sleep a bit for the CPU's sake.
         sleep(0.1)
