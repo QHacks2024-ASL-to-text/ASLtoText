@@ -1,22 +1,19 @@
-import argparse
-import os
 import numpy as np
 import speech_recognition as sr
 import whisper
 import torch
-# import PySimpleGUI as sg
+import PySimpleGUI as sg
 
 from datetime import datetime, timedelta
 from queue import Queue
 from time import sleep
-from sys import platform
 
-MAX_RECORDING_SIZE = 3.0
-NEW_PHRASE_TIMEOUT = 1.3
+MAX_RECORDING_SIZE = 6.0
+NEW_PHRASE_TIMEOUT = 4.0
 
 phrase_time = None
 data_queue = Queue()
-
+old_data = Queue()
 recorder = sr.Recognizer()
 recorder.energy_threshold = 1000
 recorder.dynamic_energy_threshold = False
@@ -32,10 +29,11 @@ with source:
 
 def record_callback(_, audio:sr.AudioData):
     """
-    Threaded callback function to retrieve audio data (as raw bytes).
+    Threaded function to retrieve audio data (as raw bytes).
     """
     data = audio.get_raw_data()
     data_queue.put(data)
+    old_data.put(data)
 
 recorder.listen_in_background(source, record_callback, phrase_time_limit=MAX_RECORDING_SIZE)
 
@@ -45,26 +43,37 @@ while True:
         now = datetime.utcnow()
         if data_queue.empty():
             continue
-        
         phrase_complete = True if phrase_time and now - phrase_time > timedelta(seconds=NEW_PHRASE_TIMEOUT) else False
-        phrase_time = now
-        audio_data = b''.join(data_queue.queue) # gets the audio data as binary from the queue.
-
         if phrase_complete:
-            data_queue.queue.clear()
-        data_queue.queue()
+            audio_data = b''.join(data_queue.queue)
+            old_data.queue.clear()
+        else:
+            audio_data = b''.join(old_data.queue)
+            # print("hi")
+
+        if phrase_time:
+            print(now - phrase_time, ">", timedelta(seconds=NEW_PHRASE_TIMEOUT), phrase_complete)
+        phrase_time = now
+            
+        data_queue.queue.clear()
+        #     print("hi")
+        # data_queue.queue()
 
         audio_np = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0 # convert audio to something model can use.
         result = model.transcribe(audio_np, fp16=torch.cuda.is_available())
         text = result['text'].strip()
         print(text)
+        print('', end='', flush=True)
+
         # if phrase_complete:
         #     transcript.append(text)
         # else:
         #     transcript[-1] = text
         #
         # print()
-        time.sleep(0.2)
+
+        #Sleep a bit for the CPU's sake.
+        sleep(0.1)
 
     except KeyboardInterrupt:
         break
