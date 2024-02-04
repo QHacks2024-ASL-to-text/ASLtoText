@@ -58,6 +58,8 @@ class Word():
                     self.output.append(self.current_word)
                     self.current_word = ""
                     # print("spaced")
+                elif c == "_":
+                    pass
                 elif c == "!":
                     self.output.append(self.current_word)
                     self.current_word = ""
@@ -75,6 +77,8 @@ class Word():
         self.char_counter += 1
         if x == "space":
             self.buffer += " "
+        elif x == "none":
+            self.buffer += "_"
         elif x == "del":
             self.buffer += "!"
         else:
@@ -108,15 +112,12 @@ def result_string(result: GestureRecognizerResult, output_image: mp.Image, times
     if(x!=None):
         y = x[0]
         # print(y)
-        if(y!= "none"):
-            print(stringObj.current_word)
-            print(y)
-            if (stringObj.add(y)):
-                # print(spell(" ".join(stringObj.output)))
-                print(stringObj.output)
-                stringObj.reset()
+        if (stringObj.add(y)):
+            # print(spell(" ".join(stringObj.output)))
+            print(''.join(stringObj.output))
+            stringObj.reset()
             #print(stringObj.buffer)
-        
+        # print(stringObj.current_word)
 
 
 options = GestureRecognizerOptions(
@@ -152,8 +153,8 @@ with GestureRecognizer.create_from_options(options) as recognizer:
         # Display the resulting frame
         if cv.waitKey(1) == ord('q'):
             break
-        elif cv.waitKey(1) == ord('p'):
-            stringObj.print()
+        # elif cv.waitKey(1) == ord('p'):
+        #     stringObj.print()
     # When everything done, release the capture
     cap.release()
     cv.destroyAllWindows()
