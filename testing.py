@@ -44,21 +44,28 @@ class Word():
             self.buffer = ""
             return False
         else:
-            c = Counter(self.buffer[0:15]).most_common(1)[0]
+            c = Counter(self.buffer[0:15]).most_common(1)[0][0]
+            # print("biggest:",c)
             last_c_index = self.buffer.rfind(c)
+            # print(last_c_index)
             if buffer_len - last_c_index < 5:
                 return False
-            if self.buffer[last_c_index + 1:].count(Counter(self.buffer[last_c_index:]).most_common(1)[0]) >= 5:
-                self.buffer = self.buffer[last_c_index + 1:]
+            if self.buffer[last_c_index + 1:].count(Counter(self.buffer[last_c_index:]).most_common(1)[0][0]) >= 5:
+                # print("passed threshold")
+                # self.buffer = self.buffer[last_c_index + 1:]
+                self.buffer = ""
                 if c == " ":
                     self.output.append(self.current_word)
                     self.current_word = ""
+                    # print("spaced")
                 elif c == "!":
                     self.output.append(self.current_word)
                     self.current_word = ""
+                    # print("breaked")
                     return True
                 else:
-                    current_word = current_word + c
+                    self.current_word = self.current_word + c
+                    # print(self.current_word, "added")
             return False
 
     def add(self, x):
@@ -81,14 +88,14 @@ class Word():
                 return True
         return False
     
-    def print(self):
-        print(self.string)
+    # def print(self):
+    #     print(self.string)
 
-    def getLast(self):
-        return self.last
+    # def getLast(self):
+    #     return self.last
     
-    def getString(self):
-        return self.string
+    # def getString(self):
+    #     return self.string
 
 # Create a gesture recognizer instance with the live stream mode:
 def result_string(result: GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
@@ -100,11 +107,15 @@ def result_string(result: GestureRecognizerResult, output_image: mp.Image, times
         x  = ([category.category_name for category in gesture])
     if(x!=None):
         y = x[0]
-        if(y!= "None"):
+        # print(y)
+        if(y!= "none"):
+            print(stringObj.current_word)
+            print(y)
             if (stringObj.add(y)):
-                print(spell(" ".join(stringObj.output)))
-                strObj.reset()
-
+                # print(spell(" ".join(stringObj.output)))
+                print(stringObj.output)
+                stringObj.reset()
+            #print(stringObj.buffer)
         
 
 
