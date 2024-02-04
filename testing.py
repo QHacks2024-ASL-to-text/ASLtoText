@@ -1,4 +1,4 @@
-
+from autocorrect import Speller
 import time
 
 import cv2 as cv
@@ -17,6 +17,8 @@ GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
 GestureRecognizerResult = mp.tasks.vision.GestureRecognizerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
+spell = Speller()
+
 class Word():
     LENGTH_CHECK = 5 # The number of charachters which must be added before the stream gets checked for a charachter again. 
     char_counter = 0
@@ -24,38 +26,60 @@ class Word():
     output = []
     current_word = ""
     buffer = ""
+    def reset(self):
+        self.char_counter = 0
+        self.output = []
+        self.current_word = ""
+        self.buffer = ""
     def get_likely_letter(self):
         """
         params: stream: a stream of letters taken raw from the engine
-        returns: tuple: most likely letter/symbol in the stream or None.
+        returns: Whether the output has been populated.
         """
         buffer_len = len(self.buffer) 
         if buffer_len < 20:
-            return None
+            return False
         elif buffer_len > 200:
             # Just a failsafe, to try and clear the buffer if some glitch happens in the system.
             self.buffer = ""
-            return None
+            return False
         else:
             c = Counter(self.buffer[0:15]).most_common(1)[0]
             last_c_index = self.buffer.rfind(c)
             if buffer_len - last_c_index < 5:
-                return None
-            
-            
-
+                return False
+            if self.buffer[last_c_index + 1:].count(Counter(self.buffer[last_c_index:]).most_common(1)[0]) >= 5:
+                self.buffer = self.buffer[last_c_index + 1:]
+                if c == " ":
+                    self.output.append(self.current_word)
+                    self.current_word = ""
+                elif c == "!":
+                    self.output.append(self.current_word)
+                    self.current_word = ""
+                    return True
+                else:
+                    current_word = current_word + c
+            return False
 
     def add(self, x):
         """
-        returns True if a new word has just been added (detected space), False otherwise.
+        returns True if the output has been returned, has just been added (detected space), False otherwise.
         """
         self.char_counter += 1
-        self.buffer = self.buffer + x
+        if x == "space":
+            self.buffer += " "
+        elif x == "del":
+            self.buffer += "!"
+        else:
+            self.buffer = self.buffer + x
         # if x!= self.last:
         #     self.string+=x +" "
         #     self.last = x
-
-        return True
+        if self.char_counter >= self.LENGTH_CHECK:
+            self.char_counter = 0
+            if self.get_likely_letter():
+                return True
+        return False
     
     def print(self):
         print(self.string)
@@ -78,7 +102,8 @@ def result_string(result: GestureRecognizerResult, output_image: mp.Image, times
         y = x[0]
         if(y!= "None"):
             if (stringObj.add(y)):
-                stringObj.print()
+                print(spell(" ".join(stringObj.output)))
+                strObj.reset()
 
         
 
