@@ -1,14 +1,13 @@
 
 import time
-import matplotlib.pyplot as plt
-import numpy as np
+
 import cv2 as cv
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 BaseOptions = mp.tasks.BaseOptions
 
-model_path = r'c:\Users\Nicholas\Downloads\gesture_recognizer.task'
+model_path = r'ASL_model/gesture_recognizer.task'
 
 base_options = BaseOptions(model_asset_path=model_path)
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
@@ -18,12 +17,18 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 
 class Word():
     last = ""
+    word = ""
     string = ""
     def add(self, x):
         if x!= self.last:
-            self.string+=x +" "
+            self.word+=x
             self.last = x
-    
+            print(self.word)
+        elif x == "space": 
+            self.string+=self.word+" "
+        #elif x == "del":
+        #    self.getString()
+
     def print(self):
         print(self.string)
 
@@ -45,7 +50,7 @@ def result_string(result: GestureRecognizerResult, output_image: mp.Image, times
         y = x[0]
         if(y!= "None"):
             stringObj.add(y)
-            stringObj.print()
+            
         
 
 
@@ -82,7 +87,10 @@ with GestureRecognizer.create_from_options(options) as recognizer:
         # Display the resulting frame
         if cv.waitKey(1) == ord('q'):
             break
+        elif cv.waitKey(1) == ord('p'):
+            stringObj.print()
     # When everything done, release the capture
     cap.release()
     cv.destroyAllWindows()
+    
     
