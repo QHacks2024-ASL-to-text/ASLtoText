@@ -20,7 +20,7 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 spell = Speller()
 
 class Word():
-    LENGTH_CHECK = 5 # The number of charachters which must be added before the stream gets checked for a charachter again. 
+    LENGTH_CHECK = 3 # The number of charachters which must be added before the stream gets checked for a charachter again. 
     char_counter = 0
     # last = ""
     output = []
@@ -39,7 +39,7 @@ class Word():
         buffer_len = len(self.buffer) 
         if buffer_len < 20:
             return False
-        elif buffer_len > 200:
+        elif buffer_len > 100:
             # Just a failsafe, to try and clear the buffer if some glitch happens in the system.
             self.buffer = ""
             return False
@@ -48,12 +48,24 @@ class Word():
             # print("biggest:",c)
             last_c_index = self.buffer.rfind(c)
             # print(last_c_index)
-            if buffer_len - last_c_index < 5:
+            if buffer_len - last_c_index < 7:
                 return False
-            if self.buffer[last_c_index + 1:].count(Counter(self.buffer[last_c_index:]).most_common(1)[0][0]) >= 5:
+            letter = Counter(self.buffer[last_c_index:]).most_common(1)[0][0]
+
+            if self.buffer[last_c_index + 1:].count(letter) >= 7:
+
+                if letter == "!":
+                    if c!="c":
+                        self.current_word += c
+                    self.current_word.rstrip('c')
+                    self.output.append(self.current_word)
+                    self.current_word = ""
+                    # print("breaked")
+                    return True
+
                 # print("passed threshold")
-                # self.buffer = self.buffer[last_c_index + 1:]
-                self.buffer = ""
+                self.buffer = self.buffer[last_c_index + 1:]
+                # self.buffer = ""
                 if c == " ":
                     self.output.append(self.current_word)
                     self.current_word = ""
@@ -117,7 +129,7 @@ def result_string(result: GestureRecognizerResult, output_image: mp.Image, times
             print(''.join(stringObj.output))
             stringObj.reset()
             #print(stringObj.buffer)
-        # print(stringObj.current_word)
+        #print(stringObj.current_word)
 
 
 options = GestureRecognizerOptions(
@@ -135,7 +147,7 @@ with GestureRecognizer.create_from_options(options) as recognizer:
         exit()
 
     windowName = "live feed"
-    cv.namedWindow('frame', cv.WINDOW_NORMAL)  
+    cv.namedWindow('frame', cv.WINDOW_FREERATIO)  
 
     while True:
         # Capture frame-by-frame
