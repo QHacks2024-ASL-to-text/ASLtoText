@@ -23,8 +23,6 @@ recorder.dynamic_energy_threshold = False
 source = sr.Microphone(sample_rate=16000)
 model = whisper.load_model("base.en")
 
-transcript = [""]
-
 with source:
     recorder.adjust_for_ambient_noise(source)
 
@@ -41,20 +39,24 @@ recorder.listen_in_background(source, record_callback, phrase_time_limit=MAX_REC
 ### Whisper Config Done ###
 
 ### GUI Config ###
-layout = [[sg.Text(size=(40,1), key='-OUTPUT-')]]
-
+sg.theme("black")
+FONT = ("Arial", 20)
+layout = [[
+        sg.Column([
+        [sg.Text(size=(90,1), key='-TEXT_OLD-', justification="center")],
+        [sg.Text(size=(90,1), key='-TEXT-', justification="center")]]
+        , vertical_alignment="center")]]
 # Create the window
-window = sg.Window('Sign To Me', layout)
+window = sg.Window('Sign To Me', layout, font=FONT)
 ### GUI Config Done ###
-
+text=""
+old_text=""
 while True:
-    try:
-
-        event, values = window.read()
+        event, values = window.read(timeout=100)
+    # try:        
         if event == sg.WINDOW_CLOSED or event == 'Quit':
             print("Quitting")
-            break        
-
+            break    
         #Current time to compare
         now = datetime.utcnow()
         if data_queue.empty():
@@ -63,6 +65,7 @@ while True:
         if phrase_complete:
             audio_data = b''.join(data_queue.queue)
             old_data.queue.clear()
+            old_text = text
         else:
             audio_data = b''.join(old_data.queue)
             # print("hi")
@@ -79,14 +82,21 @@ while True:
         audio_np = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0 # convert audio to something model can use.
         result = model.transcribe(audio_np, fp16=torch.cuda.is_available())
         text = result['text'].strip()
-        print(text)
-        print('', end='', flush=True)
-        # window['-OUTPUT-'].update(text)
 
+        # Uncomment to print text to terminal, for debugging.
+        # print(text)
+        # print('', end='', flush=True)
+
+        window['-TEXT-'].update(text)
+        window['-TEXT_OLD-'].update(old_text)
+        
         #Sleep a bit for the CPU's sake.
-        sleep(0.1)
+        # sleep(0.1)
+        
 
-    except KeyboardInterrupt:
-        break
+
+
+    # except KeyboardInterrupt:
+        # break
 
 

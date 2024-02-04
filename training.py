@@ -3,7 +3,7 @@ import os
 from mediapipe_model_maker import gesture_recognizer
 import tensorflow as tf
 
-datasetPath = r"C:\Users\Nicholas\Documents\bbbbb"
+datasetPath = "../ASL_Databaser/asl_alphabet_train/asl_alphabet_train/"
 labels = [] 
 for i in os.listdir(datasetPath):
     if os.path.isdir(os.path.join(datasetPath)):
