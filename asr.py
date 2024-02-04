@@ -21,7 +21,7 @@ recorder.energy_threshold = 1000
 recorder.dynamic_energy_threshold = False
 
 source = sr.Microphone(sample_rate=16000)
-model = whisper.load_model("base.en")
+model = whisper.load_model("small.en")
 
 with source:
     recorder.adjust_for_ambient_noise(source)

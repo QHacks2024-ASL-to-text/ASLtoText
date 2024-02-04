@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2 as cv
 import mediapipe as mp
+from collections import Counter
+
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 BaseOptions = mp.tasks.BaseOptions
@@ -17,12 +19,44 @@ GestureRecognizerResult = mp.tasks.vision.GestureRecognizerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
 class Word():
-    last = ""
-    string = ""
+    LENGTH_CHECK = 5 # The number of charachters which must be added before the stream gets checked for a charachter again. 
+    char_counter = 0
+    # last = ""
+    output = []
+    current_word = ""
+    buffer = ""
+    def get_likely_letter(self):
+        """
+        params: stream: a stream of letters taken raw from the engine
+        returns: tuple: most likely letter/symbol in the stream or None.
+        """
+        buffer_len = len(self.buffer) 
+        if buffer_len < 20:
+            return None
+        elif buffer_len > 200:
+            # Just a failsafe, to try and clear the buffer if some glitch happens in the system.
+            self.buffer = ""
+            return None
+        else:
+            c = Counter(self.buffer[0:15]).most_common(1)[0]
+            last_c_index = self.buffer.rfind(c)
+            if buffer_len - last_c_index < 5:
+                return None
+            
+            
+
+
     def add(self, x):
-        if x!= self.last:
-            self.string+=x +" "
-            self.last = x
+        """
+        returns True if a new word has just been added (detected space), False otherwise.
+        """
+        self.char_counter += 1
+        self.buffer = self.buffer + x
+        # if x!= self.last:
+        #     self.string+=x +" "
+        #     self.last = x
+
+        return True
     
     def print(self):
         print(self.string)
@@ -44,8 +78,8 @@ def result_string(result: GestureRecognizerResult, output_image: mp.Image, times
     if(x!=None):
         y = x[0]
         if(y!= "None"):
-            stringObj.add(y)
-            stringObj.print()
+            if (stringObj.add(y)):
+                stringObj.print()
         
 
 
